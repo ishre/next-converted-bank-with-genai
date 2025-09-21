@@ -11,12 +11,25 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  accounts  Account[]
+  id                String        @id @default(cuid())
+  name              String
+  email             String        @unique
+  password          String
+  kycStatus         KycStatus     @default(PENDING)
+  kycSubmittedAt    DateTime      @default(now())
+  kycApprovedAt     DateTime?
+  kycApprovedBy     String?
+  kycRejectionReason String?
+  createdAt         DateTime      @default(now())
+  accounts          Account[]
+  sentTransactions  Transaction[] @relation("TransactionSender")
+  receivedTransactions Transaction[] @relation("TransactionReceiver")
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model Account {
@@ -29,10 +42,17 @@ model Account {
 }
 
 model Transaction {
-  id        String   @id @default(cuid())
-  accountId String
-  type      String   // 'deposit', 'withdrawal', 'transfer'
-  amount    Decimal  @db.Decimal(10, 2)
-  createdAt DateTime @default(now())
-  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  accountId   String
+  type        String   // 'deposit', 'withdrawal', 'transfer'
+  amount      Decimal  @db.Decimal(10, 2)
+  description String?  // Optional description
+  senderId    String?  // For transfers - who sent the money
+  receiverId  String?  // For transfers - who received the money
+  senderName  String?  // Sender's name for display
+  receiverName String? // Receiver's name for display
+  createdAt   DateTime @default(now())
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  sender      User?    @relation("TransactionSender", fields: [senderId], references: [id])
+  receiver    User?    @relation("TransactionReceiver", fields: [receiverId], references: [id])
 }

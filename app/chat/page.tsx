@@ -1,76 +1,127 @@
 import ChatInterface from '@/components/ChatInterface'
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  CardDescription 
+} from "@/components/ui/card"
+import { 
+  Button 
+} from "@/components/ui/button"
+import { 
+  Badge 
+} from "@/components/ui/badge"
+import { 
+  Alert, 
+  AlertDescription 
+} from "@/components/ui/alert"
+import { 
+  Mail, 
+  HelpCircle, 
+  ArrowRightLeft,
+  Home,
+  History
+} from "lucide-react"
+import Link from 'next/link'
 
 export default function ChatPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Banking Assistant</h1>
-          <p className="mt-2 text-gray-600">Get instant help with your banking questions</p>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight">Banking Assistant</h1>
+          <p className="text-muted-foreground text-lg">
+            Get instant help with your banking questions
+          </p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-3">
-            <div className="h-[600px]">
+            <div className="h-[700px]">
               <ChatInterface />
             </div>
           </div>
           
           <div className="space-y-6">
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Common Questions</h3>
-              <div className="space-y-3">
-                <div className="text-sm text-gray-600">
-                  <strong>Transfer Limits:</strong> Minimum $0.01, Maximum $100,000
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <HelpCircle className="h-5 w-5" />
+                  <span>Common Questions</span>
+                </CardTitle>
+                <CardDescription>
+                  Quick answers to frequently asked questions
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Transfer Limits</span>
+                    <Badge variant="secondary">₹0.01 - ₹100,000</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Transfer Fees</span>
+                    <Badge variant="outline">No fees</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Processing Time</span>
+                    <Badge variant="outline">Instant</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Security</span>
+                    <Badge variant="default">Bank-level</Badge>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-600">
-                  <strong>Transfer Fees:</strong> No fees for all transfers
-                </div>
-                <div className="text-sm text-gray-600">
-                  <strong>Processing Time:</strong> Instant transfers
-                </div>
-                <div className="text-sm text-gray-600">
-                  <strong>Security:</strong> Bank-level encryption
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
             
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Need More Help?</h4>
-              <p className="text-sm text-blue-700 mb-3">
-                If the assistant can&apos;t help, contact our support team.
-              </p>
-              <a
-                href="mailto:support@nextbank.com"
-                className="text-sm text-blue-600 hover:text-blue-800 underline"
-              >
-                support@nextbank.com
-              </a>
-            </div>
+            <Alert>
+              <Mail className="h-4 w-4" />
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p className="font-medium">Need More Help?</p>
+                  <p className="text-sm">
+                    If the assistant can&apos;t help, contact our support team.
+                  </p>
+                  <a
+                    href="mailto:support@nextbank.com"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    support@nextbank.com
+                  </a>
+                </div>
+              </AlertDescription>
+            </Alert>
             
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-              <div className="space-y-3">
-                <a
-                  href="/dashboard"
-                  className="block w-full bg-indigo-600 text-white text-center py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors duration-200"
-                >
-                  View Dashboard
-                </a>
-                <a
-                  href="/transfer"
-                  className="block w-full bg-gray-600 text-white text-center py-2 px-4 rounded-md hover:bg-gray-700 transition-colors duration-200"
-                >
-                  Make Transfer
-                </a>
-                <a
-                  href="/transactions"
-                  className="block w-full bg-gray-600 text-white text-center py-2 px-4 rounded-md hover:bg-gray-700 transition-colors duration-200"
-                >
-                  View Transactions
-                </a>
-              </div>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>
+                  Navigate to common banking features
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button asChild className="w-full justify-start">
+                  <Link href="/dashboard">
+                    <Home className="mr-2 h-4 w-4" />
+                    View Dashboard
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/transfer">
+                    <ArrowRightLeft className="mr-2 h-4 w-4" />
+                    Make Transfer
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/transactions">
+                    <History className="mr-2 h-4 w-4" />
+                    View Transactions
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

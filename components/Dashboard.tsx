@@ -2,6 +2,41 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  CardDescription 
+} from "@/components/ui/card"
+import { 
+  Button 
+} from "@/components/ui/button"
+import { 
+  Badge 
+} from "@/components/ui/badge"
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs"
+import { 
+  ScrollArea 
+} from "@/components/ui/scroll-area"
+import { 
+  Separator 
+} from "@/components/ui/separator"
+import { 
+  DollarSign, 
+  CreditCard, 
+  Calendar, 
+  TrendingUp,
+  ArrowUpRight,
+  ArrowDownLeft,
+  RefreshCw,
+  AlertCircle
+} from "lucide-react"
 import TransferForm from './TransferForm'
 import TransactionsTable from './TransactionsTable'
 
@@ -73,30 +108,38 @@ export default function Dashboard() {
     fetchUserData()
   }
 
-
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-[400px]">
+          <CardContent className="flex flex-col items-center justify-center p-8">
+            <RefreshCw className="h-12 w-12 animate-spin text-primary mb-4" />
+            <CardTitle className="text-center">Loading your dashboard...</CardTitle>
+            <CardDescription className="text-center mt-2">
+              Please wait while we fetch your account information
+            </CardDescription>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={fetchUserData}
-            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-          >
-            Try Again
-          </button>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-[400px]">
+          <CardContent className="flex flex-col items-center justify-center p-8">
+            <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+            <CardTitle className="text-center text-destructive">Error</CardTitle>
+            <CardDescription className="text-center mt-2 mb-4">
+              {error}
+            </CardDescription>
+            <Button onClick={fetchUserData} className="w-full">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -105,139 +148,217 @@ export default function Dashboard() {
     return null
   }
 
+  const recentTransactions = accounts.flatMap(account => account.transactions)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5)
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600">Welcome back, {user.name}!</p>
-          </div>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
+        {/* Welcome Header */}
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight">Welcome back, {user.name}!</h1>
+          <p className="text-muted-foreground text-lg">
+            Here&apos;s what&apos;s happening with your accounts today.
+          </p>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Account Balance Card */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-indigo-500 rounded-md flex items-center justify-center">
-                      <span className="text-white font-bold">$</span>
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Total Balance
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        ${totalBalance.toFixed(2)}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
+        {/* Stats Grid */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">₹{totalBalance.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">
+                +2.5% from last month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Accounts</CardTitle>
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{accounts.length}</div>
+              <p className="text-xs text-muted-foreground">
+                All accounts in good standing
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Member Since</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {new Date(user.createdAt).toLocaleDateString('en-US', { 
+                  month: 'short', 
+                  year: 'numeric' 
+                })}
               </div>
-            </div>
+              <p className="text-xs text-muted-foreground">
+                {Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days
+              </p>
+            </CardContent>
+          </Card>
 
-            {/* Account Count Card */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-                      <span className="text-white font-bold">#</span>
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">This Month</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">₹12,234</div>
+              <p className="text-xs text-muted-foreground">
+                +15.3% from last month
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="accounts">Accounts</TabsTrigger>
+            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+              {/* Transfer Form */}
+              <Card className="col-span-4">
+                <CardHeader>
+                  <CardTitle>Quick Transfer</CardTitle>
+                  <CardDescription>
+                    Send money to friends and family instantly
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TransferForm 
+                    onTransferSuccess={handleTransferSuccess}
+                    currentBalance={totalBalance}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Recent Activity */}
+              <Card className="col-span-3">
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                  <CardDescription>
+                    Your latest transactions
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[300px]">
+                    <div className="space-y-4">
+                      {recentTransactions.length > 0 ? (
+                        recentTransactions.map((transaction) => (
+                          <div key={transaction.id} className="flex items-center space-x-4">
+                            <div className="flex-shrink-0">
+                              {transaction.type === 'credit' ? (
+                                <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                                  <ArrowDownLeft className="h-4 w-4 text-emerald-600" />
+                                </div>
+                              ) : (
+                                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                  <ArrowUpRight className="h-4 w-4 text-red-600" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {transaction.type === 'credit' ? 'Received' : 'Sent'} Money
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(transaction.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className={`text-sm font-medium ${
+                                transaction.type === 'credit' ? 'text-emerald-600' : 'text-red-600'
+                              }`}>
+                                {transaction.type === 'credit' ? '+' : '-'}₹{transaction.amount.toFixed(2)}
+                              </p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center text-muted-foreground py-8">
+                          No recent transactions
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Accounts
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        {accounts.length}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
             </div>
+          </TabsContent>
 
-            {/* Member Since Card */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-                      <span className="text-white font-bold">📅</span>
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Member Since
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Transfer Form */}
-          <div className="mt-8">
-            <TransferForm 
-              onTransferSuccess={handleTransferSuccess}
-              currentBalance={totalBalance}
-            />
-          </div>
-
-          {/* Account Details */}
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Account Details</h2>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <TabsContent value="accounts" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {accounts.map((account) => (
-                <div key={account.id} className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="p-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      Account #{account.id.slice(-8)}
-                    </h3>
-                    <div className="space-y-3">
+                <Card key={account.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">Account #{account.id.slice(-8)}</CardTitle>
+                      <Badge variant="secondary">Active</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Balance:</span>
-                        <span className="text-lg font-semibold text-gray-900">
-                          ${account.balance.toFixed(2)}
-                        </span>
+                        <span className="text-sm text-muted-foreground">Balance</span>
+                        <span className="text-2xl font-bold">₹{account.balance.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Created:</span>
-                        <span className="text-sm text-gray-900">
+                        <span className="text-sm text-muted-foreground">Created</span>
+                        <span className="text-sm">
                           {new Date(account.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
-                  </div>
-                </div>
+                    <Separator />
+                    <div className="flex space-x-2">
+                      <Button size="sm" className="flex-1">
+                        View Details
+                      </Button>
+                      <Button size="sm" variant="outline" className="flex-1">
+                        Transfer
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-          </div>
+          </TabsContent>
 
-          {/* Recent Transactions */}
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Recent Transactions</h2>
-            <TransactionsTable 
-              transactions={accounts.flatMap(account => account.transactions)}
-              isLoading={isLoading}
-            />
-          </div>
-        </div>
-      </main>
+          <TabsContent value="transactions" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>All Transactions</CardTitle>
+                <CardDescription>
+                  Complete transaction history for all your accounts
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TransactionsTable 
+                  transactions={accounts.flatMap(account => account.transactions)}
+                  isLoading={isLoading}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   )
 }

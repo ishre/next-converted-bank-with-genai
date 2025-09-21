@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { notificationService } from '@/lib/notifications'
+import { sendTransactionNotification } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { recipientEmail, amount } = body
+    const { recipientEmail, amount, description } = body
 
     // Validate input
     if (!recipientEmail || !amount) {
@@ -37,6 +37,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Minimum transfer amount is $0.01' },
         { status: 400 }
+      )
+    }
+
+    // Get sender information
+    const sender = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true }
+    })
+
+    if (!sender) {
+      return NextResponse.json(
+        { error: 'Sender not found' },
+        { status: 404 }
       )
     }
 
@@ -88,7 +101,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Use transaction to ensure data consistency
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Update sender's balance (debit)
       const updatedSenderAccount = await tx.account.update({
         where: { id: senderAccount.id },
@@ -114,8 +127,13 @@ export async function POST(request: NextRequest) {
       const debitTransaction = await tx.transaction.create({
         data: {
           accountId: senderAccount.id,
-          type: 'transfer_out',
-          amount: -transferAmount // Negative amount for debit
+          type: 'transfer',
+          amount: transferAmount,
+          description: description || `Transfer to ${recipient.name}`,
+          senderId: userId,
+          receiverId: recipient.id,
+          senderName: sender.name,
+          receiverName: recipient.name
         }
       })
 
@@ -123,8 +141,13 @@ export async function POST(request: NextRequest) {
       const creditTransaction = await tx.transaction.create({
         data: {
           accountId: recipientAccount.id,
-          type: 'transfer_in',
-          amount: transferAmount // Positive amount for credit
+          type: 'transfer',
+          amount: transferAmount,
+          description: description || `Transfer from ${sender.name}`,
+          senderId: userId,
+          receiverId: recipient.id,
+          senderName: sender.name,
+          receiverName: recipient.name
         }
       })
 
@@ -136,12 +159,26 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Send notifications (don't wait for them to complete)
+    // Send email notifications (don't wait for them to complete)
     Promise.all([
-      notificationService.sendTransferNotification(userId, transferAmount, recipientEmail, 'sent'),
-      notificationService.sendTransferNotification(recipient.id, transferAmount, recipientEmail, 'received')
+      sendTransactionNotification(sender.email, sender.name, {
+        type: 'transfer',
+        amount: transferAmount,
+        description: description || `Transfer to ${recipient.name}`,
+        senderName: sender.name,
+        receiverName: recipient.name,
+        createdAt: result.debitTransaction.createdAt
+      }),
+      sendTransactionNotification(recipient.email, recipient.name, {
+        type: 'transfer',
+        amount: transferAmount,
+        description: description || `Transfer from ${sender.name}`,
+        senderName: sender.name,
+        receiverName: recipient.name,
+        createdAt: result.creditTransaction.createdAt
+      })
     ]).catch(error => {
-      console.error('Failed to send transfer notifications:', error)
+      console.error('Failed to send transfer email notifications:', error)
     })
 
     return NextResponse.json({

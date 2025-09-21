@@ -102,7 +102,9 @@ export function getCSRFTokenFromRequest(req: NextRequest): string | null {
 export function withCSRFProtection(handler: (req: NextRequest, ...args: unknown[]) => Promise<NextResponse>) {
   return async (req: NextRequest, ...args: unknown[]): Promise<NextResponse> => {
     // Skip CSRF for GET requests and public endpoints
-    if (req.method === 'GET' || req.nextUrl.pathname.startsWith('/api/auth/login')) {
+    if (req.method === 'GET' || 
+        req.nextUrl.pathname.startsWith('/api/auth/login') ||
+        req.nextUrl.pathname.startsWith('/api/auth/logout')) {
       return handler(req, ...args)
     }
     

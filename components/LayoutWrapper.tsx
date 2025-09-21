@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import { 
+  Card, 
+  CardContent 
+} from "@/components/ui/card"
+import { 
+  Loader2 
+} from "lucide-react"
 import Navigation from './Navigation'
 
 interface LayoutWrapperProps {
@@ -39,17 +46,22 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-[400px]">
+          <CardContent className="flex flex-col items-center justify-center p-8">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <h2 className="text-lg font-semibold mb-2">Loading NextBank</h2>
+            <p className="text-muted-foreground text-center">
+              Please wait while we initialize your banking experience...
+            </p>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {!hideNavigation && user && <Navigation user={user} />}
       {children}
     </div>

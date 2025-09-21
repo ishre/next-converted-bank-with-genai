@@ -1,37 +1,79 @@
 'use client'
 
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  CardDescription 
+} from "@/components/ui/card"
+import { 
+  Button 
+} from "@/components/ui/button"
+import { 
+  Input 
+} from "@/components/ui/input"
+import { 
+  Alert, 
+  AlertDescription 
+} from "@/components/ui/alert"
+import { 
+  Progress 
+} from "@/components/ui/progress"
+import { 
+  Separator 
+} from "@/components/ui/separator"
+import { 
+  Form, 
+  FormControl, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from "@/components/ui/form"
+import { 
+  Send, 
+  CheckCircle, 
+  AlertCircle, 
+  RefreshCw,
+  IndianRupee
+} from "lucide-react"
 
 interface TransferFormProps {
   onTransferSuccess: () => void
   currentBalance: number
 }
 
+const transferSchema = z.object({
+  recipientEmail: z.string().email('Please enter a valid email address'),
+  amount: z.string().min(1, 'Amount is required').refine((val) => {
+    const num = parseFloat(val)
+    return !isNaN(num) && num > 0
+  }, 'Amount must be greater than 0'),
+  description: z.string().optional()
+})
+
+type TransferFormValues = z.infer<typeof transferSchema>
+
 export default function TransferForm({ onTransferSuccess, currentBalance }: TransferFormProps) {
-  const [formData, setFormData] = useState({
-    recipientEmail: '',
-    amount: ''
-  })
   const [errors, setErrors] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
-    // Clear errors when user starts typing
-    if (errors.length > 0) {
-      setErrors([])
-    }
-    if (successMessage) {
-      setSuccessMessage('')
-    }
-  }
+  const form = useForm<TransferFormValues>({
+    resolver: zodResolver(transferSchema),
+    defaultValues: {
+      recipientEmail: '',
+      amount: '',
+      description: '',
+    },
+  })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = async (data: TransferFormValues) => {
     setIsLoading(true)
     setErrors([])
     setSuccessMessage('')
@@ -42,18 +84,18 @@ export default function TransferForm({ onTransferSuccess, currentBalance }: Tran
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(data),
       })
 
-      const data = await response.json()
+      const responseData = await response.json()
 
       if (response.ok) {
-        setSuccessMessage(`Transfer of $${data.transfer.amount} to ${data.transfer.recipientEmail} completed successfully!`)
-        setFormData({ recipientEmail: '', amount: '' })
+        setSuccessMessage(`Transfer of ₹${responseData.transfer.amount} to ${responseData.transfer.recipientEmail} completed successfully!`)
+        form.reset()
         onTransferSuccess() // Refresh account data
       } else {
-        if (data.error) {
-          setErrors([data.error])
+        if (responseData.error) {
+          setErrors([responseData.error])
         } else {
           setErrors(['Transfer failed. Please try again.'])
         }
@@ -65,95 +107,161 @@ export default function TransferForm({ onTransferSuccess, currentBalance }: Tran
     }
   }
 
+  const handleClear = () => {
+    form.reset()
+    setErrors([])
+    setSuccessMessage('')
+  }
+
+  const amount = form.watch('amount')
+  const recipientEmail = form.watch('recipientEmail')
+  const progress = ((recipientEmail ? 1 : 0) + (amount ? 1 : 0)) * 50
+
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Transfer Funds</h3>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="recipientEmail" className="block text-sm font-medium text-gray-700">
-            Recipient Email
-          </label>
-          <input
-            type="email"
-            id="recipientEmail"
-            name="recipientEmail"
-            required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            placeholder="Enter recipient's email address"
-            value={formData.recipientEmail}
-            onChange={handleChange}
-          />
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <Send className="h-5 w-5" />
+          <span>Transfer Funds</span>
+        </CardTitle>
+        <CardDescription>
+          Send money to friends and family instantly
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Progress Indicator */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Transfer Progress</span>
+            <span className="text-muted-foreground">{progress}%</span>
+          </div>
+          <Progress value={progress} className="h-2" />
         </div>
 
-        <div>
-          <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
-            Amount
-          </label>
-          <div className="mt-1 relative rounded-md shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-gray-500 sm:text-sm">$</span>
-            </div>
-            <input
-              type="number"
-              id="amount"
-              name="amount"
-              required
-              min="0.01"
-              step="0.01"
-              max={currentBalance}
-              className="block w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="0.00"
-              value={formData.amount}
-              onChange={handleChange}
-            />
-          </div>
-          <p className="mt-1 text-sm text-gray-500">
-            Available balance: ${currentBalance.toFixed(2)}
-          </p>
-        </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid gap-4">
+              <FormField
+                control={form.control}
+                name="recipientEmail"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Recipient Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter recipient's email address"
+                        type="email"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        {errors.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4">
-            <div className="text-sm text-red-600">
-              <ul className="list-disc list-inside space-y-1">
-                {errors.map((error, index) => (
-                  <li key={index}>{error}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Amount</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="0.00"
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          max={currentBalance}
+                          className="pl-10"
+                          {...field}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                    <p className="text-sm text-muted-foreground">
+                      Available balance: ₹{currentBalance.toFixed(2)}
+                    </p>
+                  </FormItem>
+                )}
+              />
 
-        {successMessage && (
-          <div className="bg-green-50 border border-green-200 rounded-md p-4">
-            <div className="text-sm text-green-600">
-              {successMessage}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Add a note for this transfer"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-          </div>
-        )}
 
-        <div className="flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={() => {
-              setFormData({ recipientEmail: '', amount: '' })
-              setErrors([])
-              setSuccessMessage('')
-            }}
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Clear
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading || !formData.recipientEmail || !formData.amount}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Processing...' : 'Transfer'}
-          </button>
-        </div>
-      </form>
-    </div>
+            {/* Error Messages */}
+            {errors.length > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  <ul className="list-disc list-inside space-y-1">
+                    {errors.map((error, index) => (
+                      <li key={index}>{error}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Success Message */}
+            {successMessage && (
+              <Alert className="border-emerald-200 bg-emerald-50 text-emerald-800">
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {successMessage}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <Separator />
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClear}
+                disabled={isLoading}
+              >
+                Clear
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading || !recipientEmail || !amount}
+                className="min-w-[120px]"
+              >
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" />
+                    Transfer
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   )
 }

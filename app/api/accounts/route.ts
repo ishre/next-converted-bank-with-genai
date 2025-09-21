@@ -19,7 +19,15 @@ export async function GET(request: NextRequest) {
       include: {
         transactions: {
           orderBy: { createdAt: 'desc' },
-          take: 50 // Limit to last 50 transactions
+          take: 50, // Limit to last 50 transactions
+          include: {
+            sender: {
+              select: { name: true, email: true }
+            },
+            receiver: {
+              select: { name: true, email: true }
+            }
+          }
         }
       }
     })
@@ -32,17 +40,20 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate total balance
-    const totalBalance = accounts.reduce((sum, account) => sum + Number(account.balance), 0)
+    const totalBalance = accounts.reduce((sum: number, account: any) => sum + Number(account.balance), 0)
 
     return NextResponse.json({
-      accounts: accounts.map(account => ({
+      accounts: accounts.map((account: any) => ({
         id: account.id,
         balance: Number(account.balance),
         createdAt: account.createdAt,
-        transactions: account.transactions.map(transaction => ({
+        transactions: account.transactions.map((transaction: any) => ({
           id: transaction.id,
           type: transaction.type,
           amount: Number(transaction.amount),
+          description: transaction.description,
+          senderName: transaction.senderName || transaction.sender?.name,
+          receiverName: transaction.receiverName || transaction.receiver?.name,
           createdAt: transaction.createdAt
         }))
       })),
