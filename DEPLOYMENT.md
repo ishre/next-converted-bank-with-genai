@@ -1,251 +1,138 @@
 # NextBank Deployment Guide
 
-This guide will help you deploy NextBank to Vercel with a Neon PostgreSQL database.
+## Vercel Deployment
 
-## Prerequisites
+### Prerequisites
+- Vercel account
+- GitHub repository with the code
+- Database (PostgreSQL) - Neon, Supabase, or similar
+- Email service (Gmail, SendGrid, etc.)
 
-1. **Vercel Account**: Sign up at [vercel.com](https://vercel.com)
-2. **Neon Account**: Sign up at [neon.tech](https://neon.tech)
-3. **Google Cloud Account**: For Gemini API access
-4. **Gmail Account**: For email notifications
+### Environment Variables
 
-## Step 1: Set up Neon Database
+Set these environment variables in your Vercel dashboard:
 
-1. Go to [neon.tech](https://neon.tech) and create a new project
-2. Copy the connection string (it will look like):
-   ```
-   postgresql://username:password@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require
-   ```
-3. Save this for later use
-
-## Step 2: Set up Google Gemini API
-
-1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Create a new API key
-3. Save this for later use
-
-## Step 3: Set up Gmail SMTP
-
-1. Enable 2-factor authentication on your Gmail account
-2. Generate an App Password:
-   - Go to Google Account settings
-   - Security → 2-Step Verification → App passwords
-   - Generate a new app password for "Mail"
-3. Save this password for later use
-
-## Step 4: Deploy to Vercel
-
-### Option A: Deploy via Vercel CLI
-
-1. Install Vercel CLI:
-   ```bash
-   npm i -g vercel
-   ```
-
-2. Login to Vercel:
-   ```bash
-   vercel login
-   ```
-
-3. Deploy:
-   ```bash
-   vercel
-   ```
-
-### Option B: Deploy via GitHub
-
-1. Push your code to GitHub
-2. Go to [vercel.com](https://vercel.com)
-3. Click "New Project"
-4. Import your GitHub repository
-5. Configure environment variables (see Step 5)
-
-## Step 5: Configure Environment Variables
-
-In your Vercel dashboard, go to Project Settings → Environment Variables and add:
-
+#### Required Variables
 ```bash
 # Database
-DATABASE_URL=postgresql://username:password@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL=postgresql://username:password@host:port/database
 
-# JWT Secret (generate a strong secret)
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-
-# NextAuth URL (your Vercel domain)
-NEXTAUTH_URL=https://your-project.vercel.app
-
-# Google Gemini API
-GEMINI_API_KEY=your-gemini-api-key
+# JWT Secret
+JWT_SECRET=your-super-secret-jwt-key-here
 
 # Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
 
-# Production Environment
+# Google AI (for chat feature)
+GOOGLE_AI_API_KEY=your-google-ai-api-key
+```
+
+#### Optional Variables
+```bash
+# Next.js
+NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
 NODE_ENV=production
 ```
 
-## Step 6: Run Database Migrations
+### Deployment Steps
 
-After deployment, you need to run the database migrations:
+1. **Connect Repository**
+   - Go to Vercel dashboard
+   - Click "New Project"
+   - Import your GitHub repository
 
-1. Go to your Vercel project dashboard
-2. Go to Functions → Edge Functions
-3. Create a new Edge Function to run migrations:
+2. **Configure Environment Variables**
+   - Go to Project Settings → Environment Variables
+   - Add all required variables listed above
 
-```javascript
-// api/migrate.js
-import { PrismaClient } from '@prisma/client'
+3. **Deploy**
+   - Vercel will automatically build and deploy
+   - The build should now succeed with the fixed dependencies
 
-const prisma = new PrismaClient()
+### Database Setup
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' })
-  }
+1. **Create Database**
+   - Use Neon, Supabase, or any PostgreSQL provider
+   - Get the connection string
 
-  try {
-    // This will run the migrations
-    await prisma.$executeRaw`SELECT 1`
-    res.status(200).json({ message: 'Database connected successfully' })
-  } catch (error) {
-    res.status(500).json({ error: error.message })
-  } finally {
-    await prisma.$disconnect()
-  }
-}
-```
+2. **Run Migrations**
+   ```bash
+   npx prisma db push
+   ```
 
-Or run migrations locally with the production database:
+3. **Create Admin User**
+   - Use the admin credentials:
+   - Email: `admin@nextbank.com`
+   - Password: `admin123`
 
-```bash
-# Set the production DATABASE_URL
-export DATABASE_URL="your-production-database-url"
+### Post-Deployment
 
-# Run migrations
-npm run db:migrate
+1. **Test Admin Access**
+   - Login with admin credentials
+   - Verify admin dashboard is accessible
+   - Test KYC management features
 
-# Generate Prisma client
-npm run db:generate
-```
+2. **Test User Flow**
+   - Register a new user
+   - Verify KYC status page works
+   - Test that dashboard is blocked until KYC approval
 
-## Step 7: Seed the Database (Optional)
+3. **Configure Email**
+   - Set up email service
+   - Test email notifications
+   - Verify PDF generation works
 
-To add demo data:
+### Troubleshooting
 
-```bash
-# Set the production DATABASE_URL
-export DATABASE_URL="your-production-database-url"
+#### Build Issues
+- Ensure `autoprefixer` and `postcss` are in dependencies (not devDependencies)
+- Check that all required environment variables are set
+- Verify database connection string is correct
 
-# Run the seed script
-npm run db:seed
-```
+#### Runtime Issues
+- Check Vercel function logs for API errors
+- Verify database permissions
+- Test email configuration
 
-## Step 8: Verify Deployment
+#### Security
+- Use strong JWT secrets
+- Enable HTTPS (automatic with Vercel)
+- Regularly update dependencies
 
-1. Visit your Vercel URL
-2. Test the following features:
-   - [ ] User registration
-   - [ ] User login
-   - [ ] Dashboard access
-   - [ ] Account balance display
-   - [ ] Fund transfers
-   - [ ] Transaction history
-   - [ ] Chat with AI assistant
-   - [ ] Email notifications (check your email)
+### Features Included
 
-## Step 9: Set up Monitoring (Optional)
+✅ **User Authentication**
+- Login/Register with JWT
+- Password hashing with bcrypt
 
-1. **Vercel Analytics**: Enable in your Vercel dashboard
-2. **Error Tracking**: Consider adding Sentry or similar
-3. **Database Monitoring**: Use Neon's built-in monitoring
+✅ **KYC Verification System**
+- Role-based access control
+- Admin approval workflow
+- Email notifications
 
-## Environment-Specific Notes
+✅ **Banking Features**
+- Account management
+- Fund transfers
+- Transaction history
+- PDF statements
 
-### Development
-- Use `http://localhost:3000` for NEXTAUTH_URL
-- Use local PostgreSQL or Neon development database
-- Set NODE_ENV=development
+✅ **Admin Dashboard**
+- KYC management
+- User statistics
+- Approval/rejection workflow
 
-### Production
-- Use your Vercel domain for NEXTAUTH_URL
-- Use Neon production database
-- Set NODE_ENV=production
-- Use strong, unique JWT_SECRET
-- Use production email credentials
+✅ **Security**
+- Middleware protection
+- Role-based permissions
+- Input validation
 
-## Troubleshooting
+### Support
 
-### Common Issues
+For deployment issues:
+1. Check Vercel build logs
+2. Verify environment variables
+3. Test database connectivity
+4. Review function logs
 
-1. **Database Connection Errors**
-   - Check DATABASE_URL format
-   - Ensure SSL is enabled (sslmode=require)
-   - Verify database credentials
-
-2. **JWT Token Errors**
-   - Ensure JWT_SECRET is set
-   - Check token expiration settings
-
-3. **Email Not Sending**
-   - Verify SMTP credentials
-   - Check Gmail app password
-   - Ensure 2FA is enabled
-
-4. **Gemini API Errors**
-   - Verify API key is correct
-   - Check API quotas and limits
-
-### Debug Commands
-
-```bash
-# Check environment variables
-vercel env ls
-
-# View function logs
-vercel logs
-
-# Test database connection
-vercel env pull .env.local
-npm run db:studio
-```
-
-## Security Checklist
-
-- [ ] Strong JWT_SECRET (32+ characters)
-- [ ] HTTPS enabled (automatic with Vercel)
-- [ ] Database credentials secured
-- [ ] API keys not exposed in client code
-- [ ] Rate limiting enabled
-- [ ] CSRF protection enabled
-- [ ] Input validation on all endpoints
-
-## Performance Optimization
-
-- [ ] Enable Vercel Edge Functions
-- [ ] Use Vercel's CDN
-- [ ] Optimize images
-- [ ] Enable compression
-- [ ] Monitor Core Web Vitals
-
-## Backup Strategy
-
-1. **Database Backups**: Neon provides automatic backups
-2. **Code Backups**: Use Git version control
-3. **Environment Variables**: Store securely (Vercel handles this)
-
-## Support
-
-If you encounter issues:
-
-1. Check Vercel function logs
-2. Check Neon database logs
-3. Review this deployment guide
-4. Check the main README.md for setup instructions
-
----
-
-**Note**: This deployment guide assumes you're using the default configuration. Adjust settings based on your specific requirements.
+The application is now ready for production deployment! 🚀
