@@ -12,7 +12,18 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // TODO: Add admin role check here
+    // Check if user is admin
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true }
+    })
+
+    if (!user || user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      )
+    }
 
     const [pendingCount, approvedCount, rejectedCount, totalUsers] = await Promise.all([
       prisma.user.count({ where: { kycStatus: 'PENDING' } }),

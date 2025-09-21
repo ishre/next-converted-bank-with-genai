@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
         createdAt: user.createdAt,
         accounts: user.accounts.map((account: any) => ({
           id: account.id,

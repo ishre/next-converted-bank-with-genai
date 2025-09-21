@@ -13,7 +13,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO: Add admin role check here
+    // Check if user is admin
+    const adminUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true, name: true, email: true }
+    })
+
+    if (!adminUser || adminUser.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      )
+    }
 
     const body = await request.json()
     const { userToRejectId, rejectionReason, adminNotes } = body
@@ -25,18 +36,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get admin user info
-    const adminUser = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { name: true, email: true }
-    })
-
-    if (!adminUser) {
-      return NextResponse.json(
-        { error: 'Admin user not found' },
-        { status: 404 }
-      )
-    }
+    // Admin user info already retrieved above
 
     // Update user's KYC status
     const updatedUser = await prisma.user.update({

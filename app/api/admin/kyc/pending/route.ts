@@ -12,8 +12,18 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // TODO: Add admin role check here
-    // For now, we'll allow any authenticated user to access admin routes
+    // Check if user is admin
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true }
+    })
+
+    if (!user || user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      )
+    }
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') || 'PENDING'

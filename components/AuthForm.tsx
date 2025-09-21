@@ -48,6 +48,7 @@ import {
   Lock,
   User
 } from "lucide-react"
+import RegistrationSuccess from './RegistrationSuccess'
 
 interface AuthFormProps {
   mode: 'login' | 'register'
@@ -76,6 +77,8 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 export default function AuthForm({ mode }: AuthFormProps) {
   const [errors, setErrors] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false)
+  const [registeredUser, setRegisteredUser] = useState<{name: string, email: string} | null>(null)
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -151,7 +154,8 @@ export default function AuthForm({ mode }: AuthFormProps) {
       const responseData = await response.json()
 
       if (response.ok) {
-        window.location.href = '/dashboard'
+        setRegisteredUser({ name: data.name, email: data.email })
+        setShowRegistrationSuccess(true)
       } else {
         if (responseData.details && Array.isArray(responseData.details)) {
           setErrors(responseData.details)
@@ -164,6 +168,11 @@ export default function AuthForm({ mode }: AuthFormProps) {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Show registration success page if user just registered
+  if (showRegistrationSuccess && registeredUser) {
+    return <RegistrationSuccess userName={registeredUser.name} userEmail={registeredUser.email} />
   }
 
   return (

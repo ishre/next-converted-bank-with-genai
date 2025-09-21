@@ -118,7 +118,7 @@ export default function RegistrationSuccess({ userName, userEmail }: Registratio
               What happens next?
             </CardTitle>
             <CardDescription>
-              Here's what you can expect during the verification process
+              Here&apos;s what you can expect during the verification process
             </CardDescription>
           </CardHeader>
           <CardContent>

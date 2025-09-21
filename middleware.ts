@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken, getTokenFromCookies } from './lib/auth'
+import { prisma } from './lib/prisma'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -8,8 +9,19 @@ export async function middleware(request: NextRequest) {
   const publicRoutes = ['/login', '/register', '/']
   const isPublicRoute = publicRoutes.includes(pathname)
   
-  // Protected routes that require authentication
-  const protectedRoutes = ['/dashboard', '/transfer', '/transactions', '/chat']
+  // KYC status page - accessible to authenticated users regardless of KYC status
+  const kycStatusRoute = pathname === '/kyc-status'
+  
+  // Admin routes
+  const adminRoutes = ['/admin']
+  const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
+  
+  // Protected routes that require authentication AND KYC approval
+  const kycRequiredRoutes = ['/dashboard', '/transfer', '/transactions', '/chat']
+  const isKycRequiredRoute = kycRequiredRoutes.some(route => pathname.startsWith(route))
+  
+  // All protected routes (authentication required)
+  const protectedRoutes = [...kycRequiredRoutes, '/kyc-status', ...adminRoutes]
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
 
   // API routes that don't require authentication
@@ -56,6 +68,42 @@ export async function middleware(request: NextRequest) {
         headers: requestHeaders,
       },
     })
+  }
+
+  // Check user role and permissions
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { role: true, kycStatus: true }
+    })
+
+    if (!user) {
+      console.log('User not found, redirecting to login')
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    // Check admin routes - only admins can access
+    if (isAdminRoute && user.role !== 'ADMIN') {
+      console.log('Non-admin user trying to access admin route, redirecting to dashboard')
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
+    // Check KYC status for KYC-required routes (only for regular users)
+    if (isKycRequiredRoute && user.role === 'USER') {
+      // If KYC is not approved, redirect to KYC status page
+      if (user.kycStatus !== 'APPROVED') {
+        console.log('KYC not approved, redirecting to KYC status page')
+        return NextResponse.redirect(new URL('/kyc-status', request.url))
+      }
+    }
+  } catch (error) {
+    console.error('Error checking user permissions:', error)
+    // On error, allow access but log the issue
+  }
+
+  // Allow access to KYC status page for authenticated users
+  if (kycStatusRoute) {
+    return NextResponse.next()
   }
 
   return NextResponse.next()

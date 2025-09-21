@@ -26,23 +26,26 @@ import {
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { 
-  Home, 
-  Send, 
-  History, 
-  MessageCircle, 
-  Menu, 
-  Sun, 
-  Moon, 
+import {
+  Home,
+  Send,
+  History,
+  MessageCircle,
+  Menu,
+  Sun,
+  Moon,
   LogOut,
   User,
-  Settings
+  Settings,
+  Shield,
+  UserCheck
 } from "lucide-react"
 
 interface NavigationProps {
   user?: {
     name: string
     email: string
+    role: 'USER' | 'ADMIN'
   }
 }
 
@@ -83,6 +86,11 @@ export default function Navigation({ user }: NavigationProps) {
     { name: 'Chat', href: '/chat', icon: MessageCircle },
   ]
 
+  const adminItems = [
+    { name: 'Admin Dashboard', href: '/admin', icon: Shield },
+    { name: 'KYC Management', href: '/admin/kyc', icon: UserCheck },
+  ]
+
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -97,25 +105,37 @@ export default function Navigation({ user }: NavigationProps) {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-2">
-            <NavigationMenu>
-              <NavigationMenuList>
-                {navigationItems.map((item) => (
-                  <NavigationMenuItem key={item.name}>
-                    <Link
-                      href={item.href}
-                      className="group relative inline-flex h-10 w-max items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-primary/15 data-[state=open]:bg-primary/15"
-                    >
-                      <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
-                      <span className="relative z-10">{item.name}</span>
-                      <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </Link>
-                  </NavigationMenuItem>
-                ))}
-              </NavigationMenuList>
-            </NavigationMenu>
-          </div>
+              {/* Desktop Navigation */}
+              <div className="hidden md:flex items-center space-x-2">
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    {navigationItems.map((item) => (
+                      <NavigationMenuItem key={item.name}>
+                        <Link
+                          href={item.href}
+                          className="group relative inline-flex h-10 w-max items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-primary/15 data-[state=open]:bg-primary/15"
+                        >
+                          <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+                          <span className="relative z-10">{item.name}</span>
+                          <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </Link>
+                      </NavigationMenuItem>
+                    ))}
+                    {user?.role === 'ADMIN' && adminItems.map((item) => (
+                      <NavigationMenuItem key={item.name}>
+                        <Link
+                          href={item.href}
+                          className="group relative inline-flex h-10 w-max items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 hover:bg-orange-100 hover:text-orange-700 focus:bg-orange-100 focus:text-orange-700 focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-orange-150 data-[state=open]:bg-orange-150"
+                        >
+                          <item.icon className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+                          <span className="relative z-10">{item.name}</span>
+                          <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-orange-50 to-orange-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </Link>
+                      </NavigationMenuItem>
+                    ))}
+                  </NavigationMenuList>
+                </NavigationMenu>
+              </div>
 
           {/* User Menu & Theme Toggle */}
           <div className="hidden md:flex items-center space-x-3">
@@ -212,18 +232,40 @@ export default function Navigation({ user }: NavigationProps) {
                     <span className="text-xl font-bold">NextBank</span>
                   </SheetTitle>
                 </SheetHeader>
-                <div className="mt-6 space-y-2">
-                  {navigationItems.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="group flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium hover:bg-primary/10 hover:text-primary transition-all duration-300"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                      <span>{item.name}</span>
-                    </Link>
-                  ))}
+                    <div className="mt-6 space-y-2">
+                      {navigationItems.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className="group flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium hover:bg-primary/10 hover:text-primary transition-all duration-300"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                          <span>{item.name}</span>
+                        </Link>
+                      ))}
+                      
+                      {user?.role === 'ADMIN' && (
+                        <>
+                          <Separator className="my-4" />
+                          
+                          <div className="px-4 py-2">
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Admin</p>
+                          </div>
+                          
+                          {adminItems.map((item) => (
+                            <Link
+                              key={item.name}
+                              href={item.href}
+                              className="group flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium hover:bg-orange-100 hover:text-orange-700 transition-all duration-300"
+                              onClick={() => setIsMenuOpen(false)}
+                            >
+                              <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                              <span>{item.name}</span>
+                            </Link>
+                          ))}
+                        </>
+                      )}
                   
                   {user && (
                     <>

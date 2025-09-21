@@ -16,7 +16,7 @@ interface LayoutWrapperProps {
 }
 
 export default function LayoutWrapper({ children }: LayoutWrapperProps) {
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null)
+  const [user, setUser] = useState<{ name: string; email: string; role: 'USER' | 'ADMIN' } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const pathname = usePathname()
 
