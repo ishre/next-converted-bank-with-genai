@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NextBank - Modern Banking Solution",
+  title: "SecureDigital - Modern Banking Solution",
   description: "Secure, fast, and reliable banking built with Next.js 14 and PostgreSQL",
 };
 

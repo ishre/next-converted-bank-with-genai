@@ -50,7 +50,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
         <Card className="w-[400px]">
           <CardContent className="flex flex-col items-center justify-center p-8">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-            <h2 className="text-lg font-semibold mb-2">Loading NextBank</h2>
+            <h2 className="text-lg font-semibold mb-2">Loading SecureDigital</h2>
             <p className="text-muted-foreground text-center">
               Please wait while we initialize your banking experience...
             </p>

@@ -5,7 +5,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">NextBank</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">SecureDigital</h1>
           <p className="text-lg text-gray-600 mb-8">Your modern banking solution</p>
         </div>
         
@@ -13,7 +13,7 @@ export default function Home() {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Welcome to NextBank
+                Welcome to SecureDigital
               </h2>
               <p className="text-gray-600 mb-8">
                 Secure, fast, and reliable banking for the modern world.

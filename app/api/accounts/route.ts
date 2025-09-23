@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       accounts: accounts.map((account: any) => ({
         id: account.id,
+        accountNumber: account.accountNumber,
         balance: Number(account.balance),
         createdAt: account.createdAt,
         transactions: account.transactions.map((transaction: any) => ({

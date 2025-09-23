@@ -18,11 +18,10 @@ interface StatementData {
   transactions: Transaction[]
   startDate: Date
   endDate: Date
-  password: string
 }
 
 export async function generatePDFStatement(data: StatementData): Promise<Buffer> {
-  const { user, transactions, startDate, endDate, password } = data
+  const { user, transactions, startDate, endDate } = data
   
   // Create new PDF document
   const doc = new jsPDF()
@@ -33,7 +32,7 @@ export async function generatePDFStatement(data: StatementData): Promise<Buffer>
   // Add header
   doc.setFontSize(20)
   doc.setTextColor(255, 127, 17) // Orange color
-  doc.text('NextBank', 20, 30)
+  doc.text('SecureDigital', 20, 30)
   
   doc.setFontSize(16)
   doc.setTextColor(0, 0, 0)
@@ -141,11 +140,7 @@ export async function generatePDFStatement(data: StatementData): Promise<Buffer>
   yPosition += 20
   doc.setFontSize(8)
   doc.setTextColor(128, 128, 128)
-  doc.text('This statement is password protected for your security.', 20, yPosition)
-  yPosition += 5
-  doc.text('Password: ' + password, 20, yPosition)
-  yPosition += 5
-  doc.text('NextBank - Secure Banking Solutions', 20, yPosition)
+  doc.text('SecureDigital - Secure Banking Solutions', 20, yPosition)
   
   // Convert to buffer
   const pdfOutput = doc.output('arraybuffer')

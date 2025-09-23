@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { sendTransactionNotification } from '@/lib/email'
+import { sendTransactionNotification, sendTransferOtpEmail } from '@/lib/email'
+import { createTransferChallenge } from '@/lib/utils'
+import { v4 as uuidv4 } from 'uuid'
 
+// Backward-compatible: direct POST still performs transfer (legacy). New flow uses
+// POST /initiate to start and POST /confirm to finalize.
 export async function POST(request: NextRequest) {
   try {
     // Get user ID from middleware headers (more secure than re-verifying token)
@@ -197,5 +201,73 @@ export async function POST(request: NextRequest) {
       { error: 'Internal server error' },
       { status: 500 }
     )
+  }
+}
+
+// Initiate transfer: validate recipient by email and optional account number,
+// create a challenge with OTP and email it to the sender. Returns challengeId.
+export async function PUT(request: NextRequest) {
+  try {
+    const userId = request.headers.get('x-user-id')
+    if (!userId) {
+      return NextResponse.json({ error: 'No authentication token provided' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { recipientEmail, recipientAccountNumber, amount, description } = body
+
+    if (!recipientEmail || !amount) {
+      return NextResponse.json({ error: 'Recipient email and amount are required' }, { status: 400 })
+    }
+    const transferAmount = parseFloat(String(amount))
+    if (isNaN(transferAmount) || transferAmount <= 0) {
+      return NextResponse.json({ error: 'Amount must be a positive number' }, { status: 400 })
+    }
+
+    const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, email: true } })
+    if (!sender) return NextResponse.json({ error: 'Sender not found' }, { status: 404 })
+
+    const recipient = await prisma.user.findUnique({ where: { email: recipientEmail }, include: { accounts: true } })
+    if (!recipient) return NextResponse.json({ error: 'Recipient not found' }, { status: 404 })
+    if (recipient.id === userId) return NextResponse.json({ error: 'Cannot transfer to yourself' }, { status: 400 })
+    if (!recipient.accounts.length) return NextResponse.json({ error: 'Recipient has no accounts' }, { status: 400 })
+
+    let recipientAccountId: string | undefined
+    if (recipientAccountNumber) {
+      const acct = recipient.accounts.find(a => a.accountNumber === recipientAccountNumber || a.id === recipientAccountNumber)
+      if (!acct) return NextResponse.json({ error: 'Recipient account not found' }, { status: 404 })
+      recipientAccountId = acct.id
+    } else {
+      recipientAccountId = recipient.accounts[0].id
+    }
+
+    const senderAccount = await prisma.account.findFirst({ where: { userId } })
+    if (!senderAccount) return NextResponse.json({ error: 'Sender account not found' }, { status: 404 })
+    if (Number(senderAccount.balance) < transferAmount) {
+      return NextResponse.json({ error: 'Insufficient balance' }, { status: 400 })
+    }
+
+    const challengeId = uuidv4()
+    const challenge = createTransferChallenge({
+      id: challengeId,
+      userId,
+      recipientEmail,
+      recipientAccountId,
+      amount: transferAmount,
+      description
+    })
+
+    const emailRes = await sendTransferOtpEmail(sender.email, sender.name, challenge.otp, transferAmount, recipientEmail)
+    if (!emailRes.success) {
+      return NextResponse.json({ error: 'Failed to send OTP email' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      message: 'OTP sent to your email. Please verify to continue.',
+      challengeId
+    })
+  } catch (error) {
+    console.error('Transfer initiate error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
         createdAt: user.createdAt,
         accounts: user.accounts.map((account: any) => ({
           id: account.id,
+          accountNumber: account.accountNumber,
           balance: account.balance,
           createdAt: account.createdAt,
           recentTransactions: account.transactions

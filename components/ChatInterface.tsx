@@ -53,7 +53,7 @@ export default function ChatInterface() {
     // Add welcome message
     setMessages([{
       role: 'assistant',
-      content: 'Hello! I\'m your NextBank assistant. How can I help you with your banking needs today?',
+      content: 'Hello! I\'m your SecureDigital assistant. How can I help you with your banking needs today?',
       timestamp: new Date()
     }])
   }, [])
@@ -126,7 +126,7 @@ export default function ChatInterface() {
   const clearChat = () => {
     setMessages([{
       role: 'assistant',
-      content: 'Hello! I\'m your NextBank assistant. How can I help you with your banking needs today?',
+      content: 'Hello! I\'m your SecureDigital assistant. How can I help you with your banking needs today?',
       timestamp: new Date()
     }])
   }
@@ -166,7 +166,7 @@ export default function ChatInterface() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-lg">NextBank Assistant</CardTitle>
+              <CardTitle className="text-lg">SecureDigital Assistant</CardTitle>
               <CardDescription className="text-sm">
                 Ask me anything about banking
               </CardDescription>

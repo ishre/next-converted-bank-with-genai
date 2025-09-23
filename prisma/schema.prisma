@@ -25,6 +25,7 @@ model User {
   accounts          Account[]
   sentTransactions  Transaction[] @relation("TransactionSender")
   receivedTransactions Transaction[] @relation("TransactionReceiver")
+  transferChallenges TransferChallenge[]
 }
 
 enum UserRole {
@@ -41,10 +42,12 @@ enum KycStatus {
 model Account {
   id           String        @id @default(cuid())
   userId       String
+  accountNumber String       @unique
   balance      Decimal       @default(0) @db.Decimal(10, 2)
   createdAt    DateTime      @default(now())
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  challenges   TransferChallenge[] @relation("AccountChallenges")
 }
 
 model Transaction {
@@ -61,4 +64,19 @@ model Transaction {
   account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
   sender      User?    @relation("TransactionSender", fields: [senderId], references: [id])
   receiver    User?    @relation("TransactionReceiver", fields: [receiverId], references: [id])
+}
+
+model TransferChallenge {
+  id                 String   @id @default(cuid())
+  userId             String
+  recipientEmail     String?
+  recipientAccountId String
+  amount             Decimal  @db.Decimal(10, 2)
+  description        String?
+  otp                String
+  expiresAt          DateTime
+  verified           Boolean  @default(false)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account Account @relation("AccountChallenges", fields: [recipientAccountId], references: [id], onDelete: Cascade)
 }

@@ -14,7 +14,7 @@ export interface ChatResponse {
   isStreaming?: boolean
 }
 
-const BANKING_SYSTEM_PROMPT = `You are NextBank AI Assistant, the intelligent banking companion for NextBank - a modern, secure digital banking platform. You have complete knowledge of the NextBank application structure, features, and user workflows.
+const BANKING_SYSTEM_PROMPT = `You are SecureDigital AI Assistant, the intelligent banking companion for SecureDigital - a modern, secure digital banking platform. You have complete knowledge of the SecureDigital application structure, features, and user workflows.
 
 ## NEXTBANK APPLICATION OVERVIEW
 
@@ -22,7 +22,7 @@ const BANKING_SYSTEM_PROMPT = `You are NextBank AI Assistant, the intelligent ba
 - **Account Management**: Real-time balance tracking, account creation
 - **Fund Transfers**: Instant peer-to-peer transfers with descriptions
 - **Transaction History**: Complete transaction records with filtering and search
-- **PDF Statements**: Downloadable and email-able bank statements with password protection
+- **PDF Statements**: Downloadable and email-able bank statements
 - **AI Chat Support**: This very assistant for banking help
 
 ### 🔐 **Security & Verification System**
@@ -171,17 +171,18 @@ const BANKING_SYSTEM_PROMPT = `You are NextBank AI Assistant, the intelligent ba
 
 1. **Be Specific**: Reference exact page names, features, and workflows
 2. **Be Helpful**: Provide step-by-step instructions
-3. **Be Accurate**: Only provide information about NextBank features
+3. **Be Accurate**: Only provide information about SecureDigital features
 4. **Be Professional**: Maintain banking assistant tone
 5. **Be Contextual**: Reference the actual app structure and features
 6. **Be Secure**: Never ask for sensitive information like passwords
+7. **Stay In Scope**: If the request is unrelated to SecureDigital (e.g., general trivia, news, arbitrary Q&A), respond with a brief message: "I can help with your SecureDigital account and banking features."
 
 ### 📞 **Support Information**
 - **Email Support**: support@nextbank.com
 - **Phone Support**: +91 8000 123 456
 - **Admin Access**: admin@nextbank.com (for admin users)
 
-Remember: You are the NextBank AI Assistant with complete knowledge of this specific banking application. Help users navigate and use NextBank effectively!`
+Remember: You are the SecureDigital AI Assistant with complete knowledge of this specific banking application. Help users navigate and use SecureDigital effectively!`
 
 export class BankingChatbot {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -194,6 +195,10 @@ export class BankingChatbot {
 
   async sendMessage(userMessage: string): Promise<ChatResponse> {
     try {
+      // Guardrail: refuse clearly off-scope queries with a short message
+      if (!isBankingQuery(userMessage)) {
+        return { message: 'I can help with your SecureDigital account and banking features.', timestamp: new Date() }
+      }
       // Add user message to history
       this.chatHistory.push({
         role: 'user',
@@ -206,7 +211,8 @@ export class BankingChatbot {
       
       const result = await this.model.generateContent(context)
       const response = await result.response
-      const text = response.text()
+      const rawText = response.text()
+      const text = sanitizeAssistantOutput(rawText)
 
       // Add assistant response to history
       this.chatHistory.push({
@@ -234,6 +240,10 @@ export class BankingChatbot {
 
   private async *streamResponse(userMessage: string): AsyncGenerator<ChatResponse, void, unknown> {
     try {
+      if (!isBankingQuery(userMessage)) {
+        yield { message: 'I can help with your SecureDigital account and banking features.', timestamp: new Date(), isStreaming: false }
+        return
+      }
       // Add user message to history
       this.chatHistory.push({
         role: 'user',
@@ -246,7 +256,7 @@ export class BankingChatbot {
       // For streaming, we'll simulate it by chunking the response
       const result = await this.model.generateContent(context)
       const response = await result.response
-      const text = response.text()
+      const text = sanitizeAssistantOutput(response.text())
 
       // Simulate streaming by sending chunks
       const words = text.split(' ')
@@ -283,10 +293,10 @@ export class BankingChatbot {
 
   private buildContext(): string {
     let context = BANKING_SYSTEM_PROMPT + '\n\n'
-    
+
     // Add current date and time for context
     const now = new Date()
-    context += `Current Date & Time: ${now.toLocaleString('en-IN', { 
+    context += `Current Date & Time (Asia/Kolkata): ${now.toLocaleString('en-IN', { 
       timeZone: 'Asia/Kolkata',
       year: 'numeric',
       month: 'long',
@@ -294,17 +304,13 @@ export class BankingChatbot {
       hour: '2-digit',
       minute: '2-digit'
     })}\n\n`
-    
-    // Add recent chat history for context
-    const recentHistory = this.chatHistory.slice(-10) // Last 10 messages
-    if (recentHistory.length > 0) {
-      context += '## RECENT CONVERSATION HISTORY\n'
-      for (const message of recentHistory) {
-        context += `${message.role === 'user' ? 'User' : 'Assistant'}: ${message.content}\n`
-      }
-      context += '\n'
+
+    // Only include the last user message explicitly without labels to avoid echoing "User:" in outputs
+    const last = this.chatHistory[this.chatHistory.length - 1]
+    if (last) {
+      context += `User message: "${last.content}"\n\n`
     }
-    
+
     // Add common user scenarios for better responses
     context += `## COMMON USER SCENARIOS & RESPONSES
 
@@ -321,7 +327,7 @@ Guide them to: Transactions page (/transactions) shows complete history with fil
 Explain: You need KYC verification approval. Go to KYC Status page (/kyc-status) to check your verification status. Admin review takes 24-48 hours.
 
 ### "How do I download my statement?"
-Guide them to: Transactions page → Use "Download Statement" or "Email Statement" buttons → Choose date range → Enter password for PDF protection.
+Guide them to: Transactions page → Open "Generate Statement" → Choose date range → Click "Generate PDF" to download directly or enter an email and click "Send Email".
 
 ### "I'm an admin, how do I manage KYC?"
 Guide them to: Admin Dashboard (/admin) → KYC Management tab → Review pending requests → Approve or reject with reasons.
@@ -330,9 +336,9 @@ Guide them to: Admin Dashboard (/admin) → KYC Management tab → Review pendin
 Currently not implemented in the app. They should contact support for password changes.
 
 ### "How do I contact support?"
-Email: support@nextbank.com or Phone: +91 8000 123 456
+Email: support@securedigital.com or Phone: +91 8000 123 456
 
-Remember: Always provide specific page names, exact steps, and reference the actual NextBank features!`
+Remember: Always provide specific page names, exact steps, and reference the actual SecureDigital features!`
     
     return context
   }
@@ -348,3 +354,22 @@ Remember: Always provide specific page names, exact steps, and reference the act
 
 // Singleton instance
 export const bankingChatbot = new BankingChatbot()
+
+// Helpers
+function isBankingQuery(input: string): boolean {
+  const text = input.toLowerCase()
+  const bankingKeywords = [
+    'account', 'transfer', 'transaction', 'statement', 'kyc', 'balance', 'dashboard', 'login', 'register', 'admin', 'send money', 'otp'
+  ]
+  return bankingKeywords.some(k => text.includes(k))
+}
+
+function sanitizeAssistantOutput(raw: string): string {
+  // Remove leading role labels like "User:" or "Assistant:" and excessive prefaces
+  let text = raw.replace(/^\s*(User:|Assistant:)\s*/gi, '').trim()
+  // Keep answers concise and on-topic
+  if (text.length > 2000) {
+    text = text.slice(0, 2000) + '…'
+  }
+  return text
+}

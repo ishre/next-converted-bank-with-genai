@@ -1,4 +1,4 @@
-# NextBank - Modern Banking Application
+# SecureDigital - Modern Banking Application
 
 A full-stack banking application built with Next.js 14, PostgreSQL, Prisma, and JWT authentication.
 

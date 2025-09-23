@@ -74,7 +74,7 @@ export default function TransferPage() {
         <div className="space-y-2">
           <h1 className="text-4xl font-bold tracking-tight">Transfer Funds</h1>
           <p className="text-muted-foreground text-lg">
-            Send money to other NextBank users instantly
+            Send money to other SecureDigital users instantly
           </p>
         </div>
         

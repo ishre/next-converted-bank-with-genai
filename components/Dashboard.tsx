@@ -49,6 +49,7 @@ interface User {
 
 interface Account {
   id: string
+  accountNumber?: string
   balance: number
   createdAt: string
   transactions: Transaction[]
@@ -161,6 +162,19 @@ export default function Dashboard() {
           <p className="text-muted-foreground text-lg">
             Here&apos;s what&apos;s happening with your accounts today.
           </p>
+          {accounts[0] && (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Primary Account Number:</span>
+              <span className="font-mono">{accounts[0].accountNumber || accounts[0].id}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigator.clipboard.writeText(accounts[0].accountNumber || accounts[0].id)}
+              >
+                Copy
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Stats Grid */}
@@ -315,6 +329,13 @@ export default function Dashboard() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Account Number</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-mono">{account.accountNumber || account.id}</span>
+                          <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(account.accountNumber || account.id)}>Copy</Button>
+                        </div>
+                      </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">Balance</span>
                         <span className="text-2xl font-bold">₹{account.balance.toFixed(2)}</span>

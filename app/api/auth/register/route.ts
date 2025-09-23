@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, generateToken } from '@/lib/auth'
+import { generateAccountNumber } from '@/lib/utils'
 import { validateRegisterData } from '@/lib/validation'
 import { notificationService } from '@/lib/notifications'
 
@@ -41,7 +42,8 @@ export async function POST(request: NextRequest) {
         password: hashedPassword,
         accounts: {
           create: {
-            balance: 0
+            balance: 0,
+            accountNumber: generateAccountNumber()
           }
         }
       },

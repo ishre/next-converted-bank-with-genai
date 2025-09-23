@@ -92,7 +92,6 @@ export default function TransactionsTable({ transactions: initialTransactions, i
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [showStatementDialog, setShowStatementDialog] = useState(false)
   const itemsPerPage = 10
 
@@ -206,22 +205,29 @@ export default function TransactionsTable({ transactions: initialTransactions, i
         body: JSON.stringify({
           startDate: dateRange.start,
           endDate: dateRange.end,
-          email: email || undefined,
-          password: password || 'nextbank123'
+          // Force direct download by omitting email entirely
         })
       })
 
-      const result = await response.json()
-      
       if (response.ok) {
-        if (result.emailSent) {
-          alert('Statement generated and sent to your email successfully!')
+        // Download the PDF directly
+        const blob = await response.blob().catch(() => null)
+        if (blob && blob.type === 'application/pdf') {
+          const url = URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = `SecureDigital_Statement_${dateRange.start}_to_${dateRange.end}.pdf`
+          document.body.appendChild(link)
+          link.click()
+          link.remove()
+          URL.revokeObjectURL(url)
+          setShowStatementDialog(false)
         } else {
-          alert('Statement generated but email failed to send. Please check your email settings.')
+          alert('Unexpected response received while generating PDF.')
         }
-        setShowStatementDialog(false)
       } else {
-        alert('Error generating statement: ' + result.error)
+        const result = await response.json().catch(() => ({})) as any
+        alert('Error generating statement: ' + (result.error || 'Unknown error'))
       }
     } catch (error) {
       console.error('Error generating statement:', error)
@@ -247,8 +253,7 @@ export default function TransactionsTable({ transactions: initialTransactions, i
         body: JSON.stringify({
           startDate: dateRange.start,
           endDate: dateRange.end,
-          email: email,
-          password: password || 'nextbank123'
+          email: email
         })
       })
 
@@ -258,7 +263,8 @@ export default function TransactionsTable({ transactions: initialTransactions, i
         alert('Statement sent to your email successfully!')
         setShowStatementDialog(false)
       } else {
-        alert('Error sending statement: ' + result.error)
+        const result = await response.json().catch(() => ({})) as any
+        alert('Error sending statement: ' + (result.error || 'Unknown error'))
       }
     } catch (error) {
       console.error('Error sending statement:', error)
@@ -589,18 +595,7 @@ export default function TransactionsTable({ transactions: initialTransactions, i
               />
             </div>
             
-            <div>
-              <label className="text-sm font-medium mb-2 block">PDF Password (Optional)</label>
-              <Input
-                type="password"
-                placeholder="Leave empty for default password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Default password: nextbank123
-              </p>
-            </div>
+            {/* Removed password protection options */}
             
             <div className="flex space-x-2">
               <Button

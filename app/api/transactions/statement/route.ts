@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { startDate, endDate, email, password } = body
+    const { startDate, endDate, email } = body
 
     if (!startDate || !endDate) {
       return NextResponse.json(
@@ -72,8 +72,7 @@ export async function POST(request: NextRequest) {
         createdAt: t.createdAt
       })),
       startDate: new Date(startDate),
-      endDate: new Date(endDate),
-      password: password || 'nextbank123' // Default password
+      endDate: new Date(endDate)
     })
 
     // Send email with PDF attachment
@@ -82,22 +81,25 @@ export async function POST(request: NextRequest) {
       userName: user.name,
       pdfBuffer,
       startDate: new Date(startDate),
-      endDate: new Date(endDate),
-      password: password || 'nextbank123'
+      endDate: new Date(endDate)
     })
 
-    if (emailResult.success) {
-      return NextResponse.json({
-        message: 'Statement sent successfully',
-        emailSent: true
+    // Return the PDF directly when no email provided
+    if (!email) {
+      const arrayBuffer = pdfBuffer.buffer.slice(pdfBuffer.byteOffset, pdfBuffer.byteOffset + pdfBuffer.byteLength)
+      return new NextResponse(arrayBuffer as ArrayBuffer, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="SecureDigital_Statement_${new Date(startDate).toISOString().split('T')[0]}_to_${new Date(endDate).toISOString().split('T')[0]}.pdf"`
+        }
       })
-    } else {
-      return NextResponse.json({
-        message: 'PDF generated but email failed to send',
-        emailSent: false,
-        error: emailResult.error
-      }, { status: 500 })
     }
+
+    if (emailResult.success) {
+      return NextResponse.json({ message: 'Statement generated', emailSent: true })
+    }
+
+    return NextResponse.json({ message: 'PDF generated but email failed to send', emailSent: false, error: emailResult.error }, { status: 500 })
 
   } catch (error) {
     console.error('Statement generation error:', error)

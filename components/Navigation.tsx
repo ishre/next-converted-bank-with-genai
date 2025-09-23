@@ -101,7 +101,7 @@ export default function Navigation({ user }: NavigationProps) {
               <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
                 <span className="text-primary-foreground font-bold text-lg">N</span>
               </div>
-              <span className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">NextBank</span>
+              <span className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">SecureDigital</span>
             </Link>
           </div>
 
@@ -229,7 +229,7 @@ export default function Navigation({ user }: NavigationProps) {
                     <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
                       <span className="text-primary-foreground font-bold text-lg">N</span>
                     </div>
-                    <span className="text-xl font-bold">NextBank</span>
+                    <span className="text-xl font-bold">SecureDigital</span>
                   </SheetTitle>
                 </SheetHeader>
                     <div className="mt-6 space-y-2">
