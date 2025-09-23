@@ -14,9 +14,7 @@ import {
   AlertDescription,
   AlertTitle
 } from "@/components/ui/alert"
-import {
-  Badge
-} from "@/components/ui/badge"
+// removed unused Badge import
 import {
   Button
 } from "@/components/ui/button"

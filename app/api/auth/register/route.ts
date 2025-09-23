@@ -34,21 +34,22 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hashPassword(password)
 
-    // Create user and account
+    // Create user first (without nested account to avoid schema/type mismatch on older clients)
     const user = await prisma.user.create({
       data: {
         name,
         email,
-        password: hashedPassword,
-        accounts: {
-          create: {
-            balance: 0,
-            accountNumber: generateAccountNumber()
-          }
-        }
+        password: hashedPassword
       },
-      include: {
-        accounts: true
+      include: { accounts: true }
+    })
+
+    // Create initial account with an account number
+    await prisma.account.create({
+      data: {
+        userId: user.id,
+        balance: 0,
+        accountNumber: generateAccountNumber()
       }
     })
 

@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
           verified: false
         }
       })
-    } catch (e) {
+    } catch {
       // ignore if table not present; fallback to in-memory
     }
 

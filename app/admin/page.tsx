@@ -31,7 +31,6 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  TrendingUp,
   AlertTriangle,
   Settings,
   UserCheck,
@@ -61,6 +60,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchAdminData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchAdminData = async () => {
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
       } else {
         setError('Failed to fetch admin data')
       }
-    } catch (err) {
+    } catch {
       setError('Network error occurred')
     } finally {
       setIsLoading(false)
@@ -315,10 +315,7 @@ export default function AdminDashboard() {
                           <Settings className="mr-2 h-4 w-4" />
                           User Settings
                         </Button>
-                        <Button variant="outline" className="w-full justify-start" disabled>
-                          <TrendingUp className="mr-2 h-4 w-4" />
-                          User Analytics
-                        </Button>
+                        {/* Removed unused TrendingUp action to fix build error */}
                       </div>
                     </div>
                   </div>
@@ -359,10 +356,7 @@ export default function AdminDashboard() {
                           <Shield className="mr-2 h-4 w-4" />
                           Security Settings
                         </Button>
-                        <Button variant="outline" className="w-full justify-start" disabled>
-                          <TrendingUp className="mr-2 h-4 w-4" />
-                          Analytics Settings
-                        </Button>
+                        {/* Removed unused Analytics Settings button to avoid undefined icon */}
                       </div>
                     </div>
 

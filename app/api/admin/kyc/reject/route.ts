@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { userToRejectId, rejectionReason, adminNotes } = body
+    const { userToRejectId, rejectionReason } = body
 
     if (!userToRejectId || !rejectionReason) {
       return NextResponse.json(

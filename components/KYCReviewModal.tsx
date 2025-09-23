@@ -70,7 +70,6 @@ import {
   Clock,
   User,
   Mail,
-  Calendar,
   FileText,
   AlertTriangle
 } from "lucide-react"

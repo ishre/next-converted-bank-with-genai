@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { userToApproveId, adminNotes } = body
+    const { userToApproveId } = body
 
     if (!userToApproveId) {
       return NextResponse.json(

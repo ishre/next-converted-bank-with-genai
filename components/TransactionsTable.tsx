@@ -226,8 +226,8 @@ export default function TransactionsTable({ transactions: initialTransactions, i
           alert('Unexpected response received while generating PDF.')
         }
       } else {
-        const result = await response.json().catch(() => ({})) as any
-        alert('Error generating statement: ' + (result.error || 'Unknown error'))
+        const errJson = await response.json().catch(() => ({})) as any
+        alert('Error generating statement: ' + (errJson.error || 'Unknown error'))
       }
     } catch (error) {
       console.error('Error generating statement:', error)
@@ -263,8 +263,8 @@ export default function TransactionsTable({ transactions: initialTransactions, i
         alert('Statement sent to your email successfully!')
         setShowStatementDialog(false)
       } else {
-        const result = await response.json().catch(() => ({})) as any
-        alert('Error sending statement: ' + (result.error || 'Unknown error'))
+        const errJson = await response.json().catch(() => ({})) as any
+        alert('Error sending statement: ' + (errJson.error || 'Unknown error'))
       }
     } catch (error) {
       console.error('Error sending statement:', error)

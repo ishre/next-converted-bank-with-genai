@@ -16,9 +16,7 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table"
-import {
-  Badge
-} from "@/components/ui/badge"
+// removed unused Badge
 import {
   Button
 } from "@/components/ui/button"
@@ -30,13 +28,7 @@ import {
 import {
   Input
 } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select"
+// removed unused Select components
 import {
   Dialog,
   DialogTrigger
@@ -50,9 +42,7 @@ import {
 import {
   ScrollArea
 } from "@/components/ui/scroll-area"
-import {
-  Separator
-} from "@/components/ui/separator"
+// removed unused Separator
 import {
   Skeleton
 } from "@/components/ui/skeleton"
@@ -62,14 +52,12 @@ import {
 } from "@/components/ui/alert"
 import {
   Search,
-  Filter,
   Users,
   CheckCircle,
   Clock,
   XCircle,
   RefreshCw,
   Eye,
-  TrendingUp,
   AlertTriangle
 } from "lucide-react"
 import KYCStatusBadge from '@/components/KYCStatusBadge'
@@ -109,7 +97,7 @@ export default function AdminKYCDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
+  // removed unused isReviewModalOpen state
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('PENDING')
   const [currentPage, setCurrentPage] = useState(1)
@@ -117,6 +105,7 @@ export default function AdminKYCDashboard() {
 
   useEffect(() => {
     fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, currentPage, searchTerm])
 
   const fetchData = async () => {
@@ -141,7 +130,7 @@ export default function AdminKYCDashboard() {
         const statsData = await statsResponse.json()
         setStats(statsData.stats)
       }
-    } catch (err) {
+    } catch {
       setError('Network error occurred')
     } finally {
       setIsLoading(false)

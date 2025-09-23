@@ -19,6 +19,9 @@ import {
   Input 
 } from "@/components/ui/input"
 import { 
+  Textarea 
+} from "@/components/ui/textarea"
+import { 
   Alert, 
   AlertDescription 
 } from "@/components/ui/alert"
@@ -65,6 +68,8 @@ const registerSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
+  address: z.string().optional(),
+  otherDetails: z.string().optional(),
   terms: z.boolean().refine((val) => val === true, 'You must accept the terms and conditions'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -79,6 +84,8 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false)
   const [registeredUser, setRegisteredUser] = useState<{name: string, email: string} | null>(null)
+  const [aadharFileName, setAadharFileName] = useState<string>('')
+  const [panFileName, setPanFileName] = useState<string>('')
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -96,6 +103,8 @@ export default function AuthForm({ mode }: AuthFormProps) {
       email: '',
       password: '',
       confirmPassword: '',
+      address: '',
+      otherDetails: '',
       terms: false,
     },
   })
@@ -380,6 +389,78 @@ export default function AuthForm({ mode }: AuthFormProps) {
                       </FormItem>
                     )}
                   />
+
+                  {/* Address */}
+                  <FormField
+                    control={registerForm.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address (Optional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Enter your full address"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Other Details */}
+                  <FormField
+                    control={registerForm.control}
+                    name="otherDetails"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Other Details (Optional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Any additional information"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Aadhar Card Photo */}
+                  <FormItem>
+                    <FormLabel>Aadhar Card Photo (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          setAadharFileName(file ? file.name : '')
+                        }}
+                      />
+                    </FormControl>
+                    {aadharFileName && (
+                      <p className="text-xs text-muted-foreground">Selected: {aadharFileName}</p>
+                    )}
+                  </FormItem>
+
+                  {/* PAN Card Photo */}
+                  <FormItem>
+                    <FormLabel>PAN Card Photo (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          setPanFileName(file ? file.name : '')
+                        }}
+                      />
+                    </FormControl>
+                    {panFileName && (
+                      <p className="text-xs text-muted-foreground">Selected: {panFileName}</p>
+                    )}
+                  </FormItem>
 
                   <FormField
                     control={registerForm.control}
