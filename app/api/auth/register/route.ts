@@ -44,12 +44,12 @@ export async function POST(request: NextRequest) {
       include: { accounts: true }
     })
 
-    // Create initial account with an account number
+    // Create initial account (accountNumber will be generated lazily if missing)
     await prisma.account.create({
       data: {
         userId: user.id,
         balance: 0,
-        accountNumber: generateAccountNumber()
+        // accountNumber intentionally omitted for older Prisma client compatibility on Vercel
       }
     })
 
