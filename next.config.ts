@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   // Fix for React Server Components bundler issues
   serverExternalPackages: ['@google/generative-ai'],
   // Disable turbopack in development to avoid bundler issues

@@ -24,24 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     let challenge = getTransferChallenge(challengeId)
-    if (!challenge) {
-      try {
-        const dbChallenge = await prisma.transferChallenge.findUnique({ where: { id: challengeId } })
-        if (dbChallenge && dbChallenge.expiresAt > new Date()) {
-          challenge = {
-            id: dbChallenge.id,
-            userId: dbChallenge.userId,
-            recipientEmail: dbChallenge.recipientEmail || undefined,
-            recipientAccountId: dbChallenge.recipientAccountId,
-            amount: Number(dbChallenge.amount),
-            description: dbChallenge.description || undefined,
-            otp: dbChallenge.otp,
-            expiresAt: dbChallenge.expiresAt.getTime(),
-            verified: dbChallenge.verified
-          } as any
-        }
-      } catch {}
-    }
+    // Skip DB fallback on environments without the new Prisma client
     if (!challenge) {
       return NextResponse.json({ error: 'Challenge not found or expired' }, { status: 400 })
     }
