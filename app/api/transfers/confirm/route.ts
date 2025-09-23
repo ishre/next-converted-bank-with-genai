@@ -100,8 +100,7 @@ export async function POST(request: NextRequest) {
       return { updatedSenderAccount, updatedRecipientAccount, debitTransaction, creditTransaction }
     })
 
-    // Cleanup challenge
-    try { await prisma.transferChallenge.delete({ where: { id: challengeId } }) } catch {}
+    // Cleanup challenge (in-memory only for compatibility)
     revokeTransferChallenge(challengeId)
 
     // Notifications (fire and forget)
